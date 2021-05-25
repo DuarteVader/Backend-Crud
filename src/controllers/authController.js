@@ -14,35 +14,42 @@ function generateToken(params = {}) {
   });
 }
 
-router.post('/register', async (req, res) => {
-
+router.post('/cadastro', async function (req, res) {
   try {
-    const {
-      name,
-      cpf,
-      email,
-      password,
-      level,
-    } = req.body;
-    
+    console.log()
+    const { email } = req.body
+    const { cpf } = req.body
+
     if (await User.findOne({ email }))
-      return res.send({ error: 'Email ja registrado' });
+      return res
+        .status(400)
+        .send({ error: 'Email já existente' })
+
     if (await User.findOne({ cpf }))
-      return res.send({ error: 'CPF ja registrado' });
+      return res
+        .status(400)
+        .send({ error: 'CPF já existente' })
 
+    const newUser = new User({
+      name: req.body.name,
+      cpf: req.body.cpf,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 10),
+      level: 1,
+    })
 
-    const user = await User.create({ name, cpf, email, password: bcrypt.hashSync(req.body.password, 10), level});
+    await newUser.save()
 
-    await user.save();
-    return res.send({
-      user,
-      token: generateToken({ id: user.id }),
-    });
+    newUser.password = undefined
+
+    return res
+      .status(400)
+      .send({ newUser, token: generateToken({ id: newUser.id }) })
   } catch (err) {
     console.log(err);
-    return res.send({ error: 'Registration failed' });
+    return res.send({ error: 'Usuário não pode ser cadastrado!' })
   }
-});
+})
 
 router.post('/login', async function (req, res) {
   const { password } = req.body
@@ -64,7 +71,7 @@ router.post('/login', async function (req, res) {
 
   user.password = undefined
 
-  return res.send({ user, token: gerarToken({ id: user.id }) })
+  return res.send({ user, token: generateToken({ id: user.id }) })
 })
 
 module.exports = (app) => app.use('/auth', router);
