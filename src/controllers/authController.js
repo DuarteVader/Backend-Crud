@@ -52,13 +52,19 @@ router.post('/cadastro', async function (req, res) {
 })
 
 router.post('/login', async function (req, res) {
-  const { password } = req.body
-  const { usuario } = req.body
+  const {
+    cpf,
+    email,
+    password
+  } = req.body;
 
-  var user = await User.findOne({ email: usuario }).select('+password')
+    console.debug(cpf);
+    console.debug(password);
+
+  var user = await User.findOne({ email: email }).select('+password')
   if (!user) {
     console.log(user);
-    user = await User.findOne({ cpf: usuario }).select('+password')
+    user = await User.findOne({ cpf: cpf }).select('+password')
 
     if (!user) {
       return res
