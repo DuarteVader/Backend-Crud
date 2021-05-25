@@ -57,6 +57,7 @@ router.post('/login', async function (req, res) {
 
   var user = await User.findOne({ email: usuario }).select('+password')
   if (!user) {
+    console.log(user);
     user = await User.findOne({ cpf: usuario }).select('+password')
 
     if (!user) {
