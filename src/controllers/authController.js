@@ -32,7 +32,6 @@ router.post('/register', async (req, res) => {
 
 
     const user = await User.create({ name, cpf, email, password: bcrypt.hashSync(req.body.password, 10), level});
-    user.password = undefined;
 
     await user.save();
     return res.send({
@@ -45,32 +44,27 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/authenticate', async (req, res) => {
-  try {
-    const { password } = req.body;
-    const { usuario: usuário } = req.body;
-    var user = await User.findOne({ email: usuário }).select('+password');
-    if (!user) {
-      user = await User.findOne({ cpf: usuário }).select('+password');
-      if (!user) {
-        console.log('Usuario nao encontrado ', user);
-        return res.send({ error: 'Usuario nao encontrado' });
-      }
-    }
-    if (!await bcrypt.compare(password, user.password)) {
-      console.log(password);
-      console.log(user);
-      console.log('Senha invalida');
-      return res.send({ error: 'Senha Inválida' });
-    }
-    console.log(user);
-    user.password = undefined;
+router.post('/login', async function (req, res) {
+  const { password } = req.body
+  const { usuario } = req.body
 
-    return res.send({ user, token: generateToken({ id: user.id }) });
-  } catch (err) {
-    console.log(err);
-    return res.send({ error: 'Falha no login' });
+  var user = await User.findOne({ email: usuario }).select('+password')
+  if (!user) {
+    user = await User.findOne({ cpf: usuario }).select('+password')
+
+    if (!user) {
+      return res
+        .status(400)
+        .send({ error: 'Usuário não encontrado!' })
+    }
   }
-});
+
+  if (!(await bcrypt.compare(password, user.password)))
+    return res.status(400).send({ error: 'Senha invalida!' })
+
+  user.password = undefined
+
+  return res.send({ user, token: gerarToken({ id: user.id }) })
+})
 
 module.exports = (app) => app.use('/auth', router);
