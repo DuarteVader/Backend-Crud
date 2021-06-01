@@ -40,7 +40,6 @@ router.post('/cadastro', async function (req, res) {
 
     await newUser.save()
 
-    newUser.password = undefined
 
     return res
       .status(400)
@@ -52,33 +51,34 @@ router.post('/cadastro', async function (req, res) {
 })
 
 router.post('/login', async function (req, res) {
-  const {
-    cpf,
-    email,
-    password
-  } = req.body;
-
-    console.debug(cpf);
+  const {email} = req.body;
+  const {password} = req.body;
+  try{
+    
     console.debug(password);
 
-  var user = await User.findOne({ email: email }).select('+password')
-  if (!user) {
-    console.log(user);
-    user = await User.findOne({ cpf: cpf }).select('+password')
-
+  var user = await User.findOne({ email }).select('+password')
+  
     if (!user) {
+      console.log(user)
       return res
         .status(400)
         .send({ error: 'Usuário não encontrado!' })
     }
-  }
 
-  if (!(await bcrypt.compare(password, user.password)))
+  if (!(await bcrypt.compare(password, user.password))){
+    console.log(user)
+    console.log(password)
+    console.log(user.password)
     return res.status(400).send({ error: 'Senha invalida!' })
-
+  }
   user.password = undefined
 
   return res.send({ user, token: generateToken({ id: user.id }) })
+} catch (err) {
+  console.log(err)
+  return res.statur(400).send({ error: "Erro no login"})
+}
 })
 
 module.exports = (app) => app.use('/auth', router);

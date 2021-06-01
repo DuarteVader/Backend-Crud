@@ -25,22 +25,25 @@ router.get('/:userId', async (req, res) => {
   }
 });
 router.put('/update/:idUser', async function (req, res) {
-  try {
-    const newData = req.body;
 
-    //atualizando e retornando usuario atualizado
-    if (newData.password)
-      newData.password = await bcrypt.hashSync(req.body.password, 10);
-    const user = await User.findByIdAndUpdate(req.params.idUser, newData, {
-      new: true,
-    });
-
-    await user.save();
-    return res.send({ user });
-  } catch (err) {
-    console.log(err);
-    return res.send({ error: 'Erro ao atualizar usuário!' });
+  try{
+  const newUser = req.body;
+  
+  if(newUser.password) {
+    newUser.password = await bcrypt.hashSync(req.body.password, 10);
   }
+  console.log(newUser);
+  const user = await User.findByIdAndUpdate(req.params.idUser, newUser, {new: true,})
+
+  
+  
+  await user.save()
+  return res.send({ user })
+}catch (err) {
+  console.log(err);
+  return res.status(400).send({ error: "Erro no alterar"});
+}
+
 });
 router.delete('/:userId', async (req, res) => {
   try {
