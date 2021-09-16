@@ -35,15 +35,15 @@ router.post('/cadastro', async function (req, res) {
       cpf: req.body.cpf,
       email: req.body.email,
       password: bcrypt.hashSync(req.body.password, 10),
-      level: 1,
+      level: req.body.level,
     })
 
     await newUser.save()
 
 
     return res
-      .status(400)
-      .send({ newUser, token: generateToken({ id: newUser.id }) })
+      .status(200)
+      .send({ newUser, token: generateToken({ id: newUser.id }), sucess: 'Sucesso' })
   } catch (err) {
     console.log(err);
     return res.send({ error: 'Usuário não pode ser cadastrado!' })
@@ -51,14 +51,18 @@ router.post('/cadastro', async function (req, res) {
 })
 
 router.post('/login', async function (req, res) {
+  const {cpf} = req.body;
   const {email} = req.body;
   const {password} = req.body;
   try{
     
     console.debug(password);
-
+if(cpf != null){
+  var user = await User.findOne({ cpf }).select('+password')
+}
+else if(email != null) {
   var user = await User.findOne({ email }).select('+password')
-  
+}
     if (!user) {
       console.log(user)
       return res
@@ -72,6 +76,14 @@ router.post('/login', async function (req, res) {
     console.log(user.password)
     return res.status(400).send({ error: 'Senha invalida!' })
   }
+
+  
+  if (user.level === 0) {
+    console.log('Usuario Desativado');
+    return res.send({ error: 'Esse usuário foi desativado' });
+  }
+
+
   user.password = undefined
 
   return res.send({ user, token: generateToken({ id: user.id }) })
