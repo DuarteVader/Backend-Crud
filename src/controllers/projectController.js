@@ -4,6 +4,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
+const uploadUser = require('../middlewares/uploadImage')
+
 router.use(authMiddleware);
 
 router.get('/usuarios', async (req, res) => {
@@ -109,5 +111,20 @@ router.delete('/:userId', async (req, res) => {
     return res.status(400).send({ error: 'Erro ao deletar o usuario' });
   }
 });
+router.post("/upload-image", uploadUser.single('image'), async(req, res) => {
+
+    if(req.file){
+      return res.json({
+        erro:false,
+        mensagem:"Erro: Upload realizado com sucesso"
+        });
+    }
+    return res.status(400).json({
+        erro:true,
+        mensagem:"Erro: Upload não realizado com sucesso"
+    })
+
+});
+
 
 module.exports = (app) => app.use('/projects', router);

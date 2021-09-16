@@ -55,14 +55,16 @@ router.post('/login', async function (req, res) {
   const {email} = req.body;
   const {password} = req.body;
   try{
-    
+    console.debug(cpf);
+    console.debug(email);
     console.debug(password);
-if(cpf != null){
-  var user = await User.findOne({ cpf }).select('+password')
-}
-else if(email != null) {
+if(cpf == ''){
   var user = await User.findOne({ email }).select('+password')
 }
+if(email == '') {
+  var user = await User.findOne({ cpf }).select('+password')
+}
+    
     if (!user) {
       console.log(user)
       return res
